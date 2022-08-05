@@ -13,14 +13,15 @@ const { props: blockProps, pass, type, hasPageLinkOptions, pageLinkProps } = use
 const text = computed(() => props.content?.[0])
 const decorators = computed(() => props.content?.[1] || [])
 const decoratorKey = computed(() => decorators.value?.[0]?.[0])
-const decoratorValue = computed(() => decorators.value?.[0]?.[1])
+const decoratorValue = computed<any>(() => decorators.value?.[0]?.[1])
 const unappliedDecorators = computed(() => {
   const clonedDecorators = JSON.parse(JSON.stringify(decorators.value || []))
   clonedDecorators.shift() // remove applied decorator
   return clonedDecorators
 })
 const nextContent = computed(() => [text.value, unappliedDecorators.value])
-const isPageLink = computed(() => text.value === "‣")
+const isPageLink = computed(() => text.value === '‣' && decoratorKey.value != 'd')
+const isDateContent = computed(() => text.value === '‣' && decoratorKey.value == 'd')
 const isInlinePageLink = computed(() => decoratorValue.value?.[0] === "/")
 const pageLinkTitle = computed(
   () => blockProps.blockMap?.[decoratorValue.value]?.value?.properties?.title?.[0]?.[0] || "link"
@@ -74,6 +75,7 @@ export default {
   <a v-else-if="decoratorKey === 'a'" class="notion-link" :target="target" :href="decoratorValue">
     <NotionDecorator :content="nextContent" v-bind="pass" />
   </a>
+  <span v-else-if="isDateContent" class="notion-link">@{{ decoratorValue['start_date'] }}</span>
   <span v-else-if="decorators.length === 0">{{ text }}</span>
   <span v-else-if="decoratorKey === 'h'" :class="'notion-' + decoratorValue"
     ><NotionDecorator :content="nextContent" v-bind="pass" />
